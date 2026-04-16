@@ -6,13 +6,6 @@ Learn agentic engineering from first principles in lessons you can finish in und
 
 Guru is for people who want durable understanding without wasting time on stale recipes, long theory dumps, or vague AI advice. Every lesson is short. Around 90% of lessons are practical. The goal is simple: teach you something you can use immediately.
 
-## What Guru Optimizes For
-
-- Fast lessons: every lesson takes less than five minutes
-- High practicality: around 90% of lessons teach something directly useful in real work
-- First-principles thinking: learn the underlying mechanics, not just today's workflows
-- Real problem solving: use Guru both to learn concepts and to work through concrete systems problems
-
 ## Two Ways to Use It
 
 ### Learn a lesson
@@ -30,6 +23,17 @@ You will get a compact lesson designed to give you a real mental model fast, not
 ```
 
 Guru will break the problem down from the primitives up and help you find an approach that actually makes sense.
+
+## Knowledge Base
+
+Guru's knowledge base is highly curated and crowd-sourced on Discord ([join the Discord](TODO)). Feedback, suggestions, and discussions there are autonomously consolidated back into the lessons, then reviewed and finalized by a human.
+
+## What Guru Optimizes For
+
+- Fast lessons: every lesson takes less than five minutes
+- High practicality: around 90% of lessons teach something directly useful in real work
+- First-principles thinking: learn the underlying mechanics, not just today's workflows
+- Real problem solving: use Guru both to learn concepts and to work through concrete systems problems
 
 ## The Agentic Engineering Ladder
 
