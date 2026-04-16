@@ -17,13 +17,17 @@ Guru is for people who want durable understanding without wasting time on stale 
 
 ### Learn a lesson
 
-Ask Guru to teach you a topic from first principles.
+```
+/guru teach me something
+```
 
 You will get a compact lesson designed to give you a real mental model fast, not a surface-level summary.
 
 ### Bring a problem
 
-Describe what you are trying to build, debug, or figure out.
+```
+/guru describe what you are trying to build, debug, or figure out
+```
 
 Guru will break the problem down from the primitives up and help you find an approach that actually makes sense.
 
@@ -62,10 +66,10 @@ Example prompts:
 
 ```
 /guru teach me tool use from first principles
-/guru teach me context engineering in under five minutes
+/guru teach me context engineering from first principles
 /guru help me design a multi-agent coding system
-/guru my agent uses tools constantly but still makes bad decisions, help me diagnose it
 /guru teach me something practical about agent memory
+/guru my agent just made a mistake, help me figure out why
 ```
 
 ## What It's For
