@@ -60,11 +60,13 @@ Invoke Guru whenever you want to learn something or think through a problem.
 
 Example prompts:
 
-- `Teach me tool use from first principles.`
-- `Teach me context engineering in under five minutes.`
-- `Help me design a multi-agent coding system.`
-- `My agent uses tools constantly but still makes bad decisions. Help me diagnose it.`
-- `Teach me something practical about agent memory.`
+```
+/guru teach me tool use from first principles
+/guru teach me context engineering in under five minutes
+/guru help me design a multi-agent coding system
+/guru my agent uses tools constantly but still makes bad decisions, help me diagnose it
+/guru teach me something practical about agent memory
+```
 
 ## What It's For
 
