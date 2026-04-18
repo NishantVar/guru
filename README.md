@@ -1,5 +1,7 @@
 # guru
 
+> **Work in progress.** The curriculum and tooling are actively being built. Expect rough edges, missing lessons, and frequent changes.
+
 Your teacher for agentic engineering.
 
 Learn agentic engineering from first principles in lessons you can finish in under five minutes.
