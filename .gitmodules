@@ -1,0 +1,3 @@
+[submodule "gurukul"]
+	path = gurukul
+	url = https://github.com/NishantVar/gurukul.git
