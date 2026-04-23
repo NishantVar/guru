@@ -15,6 +15,18 @@ The user provides one or more of:
 - Raw text / pasted content
 - A file already in `gurukul/raw/`
 
+## File I/O
+
+All markdown reads and writes inside `gurukul/` (raw transcripts, wiki pages, `index.md`, `log.md`) go through the `obsidian` CLI against the `the_new_order` vault. This repo is registered as that vault, so wikilinks, backlinks, and live indexing work automatically.
+
+- Create: `obsidian vault=the_new_order create path="<path-from-repo-root>" content="..." silent`
+- Overwrite: add the `overwrite` flag
+- Append: `obsidian vault=the_new_order append path="<path>" content="..."`
+- Read: `obsidian vault=the_new_order read path="<path>"`
+- Use `\n` in `content=` values for newlines.
+
+Non-markdown artefacts (VTT subtitles, JSON manifests, `/tmp/` scratch files) use normal tools (`Write`, `Edit`, `Bash`). If `obsidian` is unreachable (vault not open), silently fall back to `Write`/`Edit` — do not surface this to the user.
+
 ## Step 1: Acquire Source
 
 Determine source type and get the content into `gurukul/raw/`.
@@ -74,8 +86,16 @@ Read it directly, skip to Step 2.
 
 ## Step 2: Save to gurukul/raw/
 
-Save the acquired content as `gurukul/raw/<kebab-case-title>.md` with frontmatter:
+Save the acquired content as `gurukul/raw/<kebab-case-title>.md` via obsidian-cli:
 
+```bash
+obsidian vault=the_new_order create \
+  path="gurukul/raw/<kebab-case-title>.md" \
+  content="---\ntitle: \"<Title>\"\nsource_url: \"<URL if applicable>\"\nspeaker: \"<Author/Channel/Speaker if applicable>\"\ndate: YYYY-MM-DD\ntype: article | transcript | paper | notes\n---\n\n<content here>" \
+  silent
+```
+
+Frontmatter shape:
 ```markdown
 ---
 title: "<Title>"
@@ -90,7 +110,7 @@ type: article | transcript | paper | notes
 
 Rules:
 - Kebab-case the title for the filename
-- This file is immutable once created — never edit it later
+- The frontmatter and source content are immutable once created. The only permitted modification is the append-only "Wiki pages generated from this source" section at the bottom, managed by Step 5b.
 - For transcripts: clean up artifacts (repeated lines, timing codes, `[Music]` tags)
 
 ## Step 3: Extract Knowledge
@@ -115,9 +135,67 @@ Read the source and extract:
 - Use `[[wikilinks]]` liberally for cross-references
 - Never delete information — use ~~strikethrough~~ for outdated claims
 
+Writes go through obsidian-cli:
+```bash
+# New page
+obsidian vault=the_new_order create \
+  path="gurukul/wiki/unconfirmed/<slug>.md" content="..." silent
+
+# Update existing page (replaces contents)
+obsidian vault=the_new_order create \
+  path="gurukul/wiki/unconfirmed/<slug>.md" content="..." silent overwrite
+
+# Check if a page exists before creating (read returns non-zero on miss)
+obsidian vault=the_new_order read path="gurukul/wiki/unconfirmed/<slug>.md" >/dev/null 2>&1
+```
+
+## Step 5b: Backlink to Raw
+
+After all wiki pages for this ingest are written, append a "Wiki pages generated from this source" section to the raw file so the raw → wiki direction is explicit (not just reliant on Obsidian's backlink index).
+
+Structure:
+
+```markdown
+
+---
+
+## Wiki pages generated from this source
+<!-- Managed by /ingest — append-only. Do not hand-edit; original content above is immutable. -->
+
+### Run YYYY-MM-DD
+- [[wiki/unconfirmed/<page-slug>]] — <one-line description, <80 chars>
+- [[wiki/unconfirmed/<page-slug>]] — <one-line description>
+```
+
+Every re-ingest of the same source adds a new `### Run YYYY-MM-DD` block under the same `## Wiki pages generated from this source` heading — never rewrites earlier runs, never dedupes. History stays auditable.
+
+Implementation:
+
+```bash
+# Step 1: ensure the section header exists (idempotent — only appends on first run)
+obsidian vault=the_new_order read path="gurukul/raw/<slug>.md" \
+  | grep -q "^## Wiki pages generated from this source" \
+  || obsidian vault=the_new_order append \
+       path="gurukul/raw/<slug>.md" \
+       content="\n---\n\n## Wiki pages generated from this source\n<!-- Managed by /ingest — append-only. Do not hand-edit; original content above is immutable. -->"
+
+# Step 2: append this run's block
+obsidian vault=the_new_order append \
+  path="gurukul/raw/<slug>.md" \
+  content="\n### Run $(date +%Y-%m-%d)\n- [[wiki/unconfirmed/<page-1>]] — <description>\n- [[wiki/unconfirmed/<page-2>]] — <description>"
+```
+
+One-line description convention: pull from the wiki page's first sentence under its `## Summary` (or opening paragraph), trimmed to <80 chars. Every page listed here must also list this raw file in its own `sources:` frontmatter — the two sides stay in sync.
+
 ## Step 6: Update Index
 
-Add new pages to `gurukul/wiki/index.md` under the right topic/type.
+Add new pages to `gurukul/wiki/index.md` under the right topic/type:
+```bash
+obsidian vault=the_new_order append \
+  path="gurukul/wiki/index.md" \
+  content="- [[wiki/unconfirmed/<slug>]] — <one-line description>"
+```
+If a specific topic/type section needs to be edited in-place rather than appended, read the file, edit, and rewrite with `create ... overwrite`.
 
 ## Step 7: Handle Learning Content
 
@@ -125,7 +203,12 @@ SKIP — do NOT create or update anything in `gurukul/lessons/`. All content goe
 
 ## Step 8: Log It
 
-Append an entry to `gurukul/wiki/log.md`.
+Append an entry to `gurukul/wiki/log.md`:
+```bash
+obsidian vault=the_new_order append \
+  path="gurukul/wiki/log.md" \
+  content="- **ingest**: Processed [[raw/<slug>]] → created [[wiki/unconfirmed/<page1>]], updated [[wiki/unconfirmed/<page2>]]"
+```
 
 ## Cleanup
 
@@ -140,4 +223,4 @@ rm -f /tmp/yt-transcript.* /tmp/*.mp3 /tmp/*.txt
 - Whisper `base` model is the default (good speed/quality balance on Apple Silicon)
 - If the user says "use small" or "use medium", pass that model to Whisper instead
 - For batch processing (multiple URLs), process them one at a time sequentially
-- Never modify files in `gurukul/raw/` after creation
+- Never modify the frontmatter or source content of files in `gurukul/raw/` after creation. The only permitted change is appending to the "Wiki pages generated from this source" section at the bottom (Step 5b).
