@@ -187,6 +187,13 @@ Invoke the /ingest skill for this video. Modifications for batch mode:
 - Step 4 (Discuss with User): SKIP — use this emphasis instead: "<batch_emphasis>"
 - File I/O: all markdown writes to gurukul/ go through `obsidian vault=the_new_order ...`
   (see the File I/O section in /ingest). Fall back to Write silently if obsidian is unreachable.
+- Primary creator for all new pages = `<speaker>` (channel name). When writing the
+  attribution callout (Step 5, per wiki/AGENTS.md), default to variant A for single-
+  source new pages and variant B when the page already cites multiple sources from
+  this same creator. If you are *updating* a page whose existing sources are from a
+  different creator, upgrade the callout to variant C (synthesis). Ensure the speaker
+  has a wiki entity page at gurukul/wiki/unconfirmed/<speaker-slug>.md — create a
+  stub if missing before linking attribution callouts to it.
 - IGNORE all promotional content: sponsor segments, product plugs, affiliate pitches,
   merch pushes, course/membership upsells, Patreon/newsletter CTAs, discount codes,
   "check out my..." sections. Do NOT create wiki pages for the creator's own products

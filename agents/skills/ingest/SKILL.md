@@ -100,7 +100,7 @@ Frontmatter shape:
 ---
 title: "<Title>"
 source_url: "<URL if applicable>"
-speaker: "<Author/Channel/Speaker if applicable>"
+speaker: "<Author/Channel/Speaker>"
 date: YYYY-MM-DD
 type: article | transcript | paper | notes
 ---
@@ -110,6 +110,7 @@ type: article | transcript | paper | notes
 
 Rules:
 - Kebab-case the title for the filename
+- `speaker:` is **required** for any authored source (articles, videos, podcasts, transcripts). Only omit it for unauthored sources like standards docs or anonymous pastes. The attribution callout step in Step 5 reads this field to credit wiki pages — an empty speaker means downstream pages get no attribution.
 - The frontmatter and source content are immutable once created. The only permitted modification is the append-only "Wiki pages generated from this source" section at the bottom, managed by Step 5b.
 - For transcripts: clean up artifacts (repeated lines, timing codes, `[Music]` tags)
 
@@ -131,9 +132,11 @@ Read the source and extract:
 - For each significant entity/concept, create or update a page in `gurukul/wiki/unconfirmed/`
 - A single source may touch 5-15 wiki pages — don't be conservative
 - For each reference cataloged in step 3c, check if a wiki page exists; if not, create a stub entity page
+- **Speaker entity page:** If the raw file has a `speaker:` frontmatter value and no wiki entity page exists for that person yet, create one at `gurukul/wiki/unconfirmed/<speaker-slug>.md` (type: entity) before writing any attribution callouts
 - Every wiki page needs YAML frontmatter (title, created, updated, sources, tags, type)
 - Use `[[wikilinks]]` liberally for cross-references
-- Never delete information — use ~~strikethrough~~ for outdated claims
+- **Attribution callout:** Every new `type: concept` or `type: synthesis` page must open with an attribution callout (blockquote between `# Title` and first paragraph) crediting the speaker(s). Pick variant A–E per the "Attribution Callout" section of `gurukul/wiki/AGENTS.md`. When *updating* an existing page, check whether the callout needs upgrading (A→B on additional source from same creator, A/B→C when a different creator's source is added).
+- For contradictions between sources, follow the dual pattern in `gurukul/wiki/AGENTS.md` — narrative synthesis by default, `~~strikethrough~~` only for within-page updates to a page's own prior claim.
 
 Writes go through obsidian-cli:
 ```bash
