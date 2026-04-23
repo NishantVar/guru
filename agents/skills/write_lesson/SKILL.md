@@ -94,6 +94,8 @@ Let blocks speak for themselves. When a code block, prompt, or example is self-e
 
 No hand-holding. No babysitting tone. No hype or "AI magic" framing. Give enough context to make the reader effective, then move on.
 
+**Pick engaging examples.** When a lab or task introduces a capability for the first time, choose an example that produces a satisfying, visible result — not the safest or most trivial one. Fetching real headlines from Hacker News beats loading example.com. Searching for today's weather beats listing files. The learner's first experience with a new capability should make them think "that's cool, what else can this do?" — not "okay, I guess it works." Reliability matters, but don't sacrifice all wow factor for determinism.
+
 Only write about things you actually know. If you're unsure whether a feature exists, a flag is real, or a workflow works a certain way, say so or leave it out. Fabricating technical details — invented feature flags, made-up tool names, hallucinated commands — destroys trust. It's better to be honest about uncertainty than to sound authoritative about something wrong.
 
 ## Language
@@ -247,7 +249,9 @@ Do **not** write evaluation files to the vault. Report the verdict and score ver
 
 **If the verdict is "Needs revision"** (score 15-19 or a dimension scores 0): apply the highest-leverage revisions, then re-run the evaluation. One revision pass is usually enough.
 
-**If the verdict is "Publish-ready"** (all gates pass, score 20+, no dimension at 0): proceed to persona reviews.
+**If the score is ≤ 24** (even if the verdict is "Publish-ready"): apply the highest-leverage revisions and re-run the evaluation. Repeat up to a maximum of **3 total evaluation attempts** (initial + 2 retries). After 3 attempts, proceed with the best version reached.
+
+**If the verdict is "Publish-ready"** (all gates pass, score 20+, no dimension at 0) **and score is above 24**: proceed to persona reviews.
 
 The evaluation sub-agent must be independent — it should not have written the lesson. This separation matters because the writer is biased toward their own output. The evaluator grades what's on the page, not what was intended.
 
@@ -318,6 +322,24 @@ When a user requests changes to an existing lesson, update both the lesson and i
 4. Update the prompt file's `updated:` frontmatter date
 
 This ensures the prompt file always reflects the full history of how the lesson was shaped.
+
+## Recreating Lessons
+
+When the user wants to recreate an existing lesson from scratch ("recreate", "rewrite from scratch", "redo", "fresh version"), don't read or revise the existing lesson. Treat it as a new write with one difference: grep the existing file for `track:` and `order:` (don't read it — grep returns only those lines).
+
+1. Write to `/tmp/<lesson-name>-recreated.md` — full pipeline (steps 1-10), but skip vault placement (step 1), index update (step 3), and log (step 5)
+2. User validates the output
+3. On approval: replace the lesson file, reinitialize the prompt file, and log the recreation
+
+**Reinitializing the prompt file (composed prompt rule):** The new `## Original Prompt` must be a **single self-contained prompt that combines the previous prompt, any prior revisions, and the new caveats from this recreation request** — written so that running `/write_lesson` with that prompt alone in the future would one-shot a lesson similar to the current one.
+
+Procedure:
+1. Read the existing prompt file in full — both the `## Original Prompt` section and every entry in `## Revisions`.
+2. Fold the substance of those revisions into the prompt (the lasting instructions they encode, not the meta-language like "change X to Y"). If the prior prompt alone is enough to reproduce the lesson, you can skip this — but if revisions added meaningful direction (new examples, scope constraints, tone shifts), they belong in the composed prompt.
+3. Merge in the user's new caveats from this recreation request.
+4. Write the result as one coherent prompt. Don't just paste the user's "recreate with X" message — that's a meta-instruction, not a prompt that reproduces the lesson.
+
+Reset `## Revisions` to empty and set both `created:` and `updated:` to today's date.
 
 ## Anti-Patterns
 

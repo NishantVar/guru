@@ -10,13 +10,13 @@ Use this spine when the lesson produces a working deliverable.
 
 Same rule as concept lessons — lead with the capability, not a description of the lesson. What will the learner have when they're done? Why is it useful? Give enough of the shape that the reader can picture the finished product.
 
-Keep it to 2-4 sentences. Compress rather than cut — weave the deliverable, its value, and the transferable pattern into fewer sentences. The "What you're building" section right after handles the detailed breakdown.
+Keep it to 2-4 sentences. Compress rather than cut — weave the deliverable, its value, and the transferable pattern into fewer sentences. The opening must fully convey what the learner will have when done — don't defer that to a later section.
 
-### 2. What you're building
+### 2. What it looks like in action
 
-A concrete picture of the end state — what the finished thing does, what it looks like in action, what it connects to. Aim for a "when you're done, you'll have X that does Y" description.
+Show the finished thing working — example interactions, a before/after, an architecture diagram, a table of "you say X, it does Y." This section isn't about *what* you're building (the opening already said that) but about *what it feels like to use it*. Give the learner a concrete picture of daily life after the build is done.
 
-Don't preview the build. If a component gets its own build section, don't describe it here — the learner will meet it in context. The anchor is the outcome shape, not an inventory of parts.
+Don't restate the outcome from the opening. Don't preview the build steps. If this section reads like a rephrased version of the opening paragraph, cut it and let the opening stand alone.
 
 ### 3. What you'll need (optional)
 

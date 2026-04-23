@@ -14,7 +14,7 @@ Use the Discord MCP tools for all server actions. If the MCP is not connected, t
 - **Local lessons**: `gurukul/lessons/<track>/<slug>.md` — source of truth
 - **Local index**: `gurukul/lessons/index.md` — source of truth for the Discord pinned roadmap
 - **Discord forums**: distribution channel only — always mirror the local files
-- **References**: `references/curriculum.md` tracks current channel IDs and server state
+- **Channel/forum IDs**: fetched on demand via `list_channels` — no need to track locally
 
 See `$OBSIDIAN/the_new_order/CLAUDE.md` and `gurukul/AGENTS.md` for lesson conventions and frontmatter schema.
 
@@ -53,7 +53,7 @@ Apply the tag matching the lesson's `lesson_format` when posting. Briefings use 
 
 The `index` channel holds a single **pinned message** — the master roadmap. It mirrors `gurukul/lessons/index.md`.
 
-**Critical rule**: Never create a new pinned message. Always **edit the existing one**. The message ID is tracked in `references/curriculum.md`. If the index message doesn't exist yet, create it once, pin it, record the ID in `curriculum.md`, and then only edit from that point on.
+**Critical rule**: Never create a new pinned message. Always **edit the existing one**. Find it via `list_pinned_messages` in the `index` channel. If the index message doesn't exist yet, create it once and pin it.
 
 ### Format
 
@@ -91,9 +91,49 @@ Each lesson in `gurukul/lessons/<track>/<slug>.md` maps to one forum post in the
 
 **Post body**: the lesson's markdown content with frontmatter **stripped**. Keep everything else verbatim — the lesson is already written for Discord consumption (short sections, scannable blocks, front-loaded sentences per `/write_lesson` conventions).
 
+**Tables**: Discord does not render markdown tables — pipe syntax displays as raw text. Convert all tables to **code blocks** with manually aligned columns:
+
+```
+\```
+#  Track           What you'll learn
+─  ──────────────  ──────────────────────────────────────────────
+1  Vibing          Use a coding agent for real work
+2  Operating       Set up tools that make your agent more capable
+\```
+```
+
+For simple two-column tables where alignment isn't critical, a **bold + line break** list is also acceptable:
+
+```
+**Vibing** — Use a coding agent for real work
+**Operating** — Set up tools that make your agent more capable
+```
+
+Prefer code blocks for data-heavy or multi-column tables. Prefer bold lists for simple key-value pairs.
+
+**Chunking for long lessons**: Discord limits messages to 2000 characters. Most lessons exceed this. Split the body into chunks under 2000 chars each, breaking at natural section boundaries (before `##` or `###` headings). Post the first chunk as the forum post's initial content via `create_forum_post`. Send each subsequent chunk as a follow-up message in the same thread using `send_message` with the thread ID (returned from `create_forum_post`) as the channel. The next-lesson link goes in the final chunk.
+
 **Tag**: the lesson's `lesson_format` (or an appropriate briefings tag).
 
 **Cross-lesson links**: if the lesson body contains `[[gurukul/lessons/<track>/<slug>]]` wikilinks, replace them with Discord forum post URLs before posting. If the target post doesn't exist yet, replace with the plain title and flag it to the user.
+
+**Next-lesson link**: Always append a "next lesson" link at the bottom of every post. Use `gurukul/lessons/index.md` to determine lesson order within the track. If the next lesson's forum post exists, link to it; otherwise use the plain title. Format:
+
+```
+---
+**Next →** [Lesson Title](forum-post-url)
+```
+
+If this is the last lesson in the track and the next track in the index has lessons, link to the first lesson of that next track with a note:
+
+```
+---
+**Next →** [Lesson Title](forum-post-url) *(in the Operating track)*
+```
+
+If this is the very last lesson across all tracks, omit the next link.
+
+When publishing a batch of lessons, do a second pass to backfill next-links for any posts that were created before their target existed.
 
 ## Workflows
 
@@ -105,13 +145,14 @@ Precondition: the lesson file already exists at `gurukul/lessons/<track>/<slug>.
 2. Confirm the matching forum channel exists; create it if not (see "Setting Up or Expanding the Server")
 3. Strip frontmatter and resolve any `[[wikilinks]]` to Discord URLs or plain titles
 4. Create the forum post with the title, body, and `lesson_format` tag
-5. Record the forum post URL — you may need it later for cross-linking
+5. Append the next-lesson link (see "Next-lesson link" above)
 6. Update the index channel's pinned message to include the new lesson (read `gurukul/lessons/index.md` as source of truth, re-render for Discord, edit the pinned message)
+7. If the previous lesson in the track exists as a forum post, edit it to add/update its next-lesson link pointing to this new post
 
 ### Updating an Existing Lesson
 
 1. Read the updated lesson file
-2. Find the corresponding forum post (search the track forum by title, or look it up in `references/curriculum.md` if tracked there)
+2. Find the corresponding forum post (search the track forum by title)
 3. Edit the post body to match — strip frontmatter, resolve wikilinks
 4. If the lesson's `updated:` date reflects a meaningful change, add a brief note at the top of the post body (e.g., "*Updated YYYY-MM-DD — expanded examples.*")
 5. Re-sync the pinned index if the title or order changed
@@ -135,8 +176,6 @@ When the server is missing structure (as it currently is — only the `index` ch
 3. Add the tags listed in "Forum Tags" to each forum
 4. Set each forum's description
 5. If the pinned index message doesn't yet match `gurukul/lessons/index.md`, edit it to mirror the local index
-6. Update `references/curriculum.md` with the new channel IDs
-
 Grow the server incrementally — don't pre-create empty forums for tracks that have no lessons yet.
 
 ### Archiving / Deprecating
@@ -153,11 +192,8 @@ As of the last recorded state, the server has **no track forums** — only the `
 2. Replace the placeholder pinned index with the rendered `gurukul/lessons/index.md`
 3. Proceed with the publish workflow
 
-Record every new channel/tag/message ID in `references/curriculum.md` so future runs don't re-probe the API.
-
 ## References
 
-- `references/curriculum.md` — channel IDs, message IDs, and server state snapshot
 - `gurukul/docs/agentic-engineering-ladder.md` — canonical track progression and descriptions
 - `gurukul/AGENTS.md` — lesson frontmatter and naming conventions
 - `agents/skills/write_lesson/SKILL.md` — owns lesson authoring; don't duplicate format guidance here
