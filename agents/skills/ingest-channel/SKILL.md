@@ -11,6 +11,10 @@ Batch-ingest a YouTube channel into the wiki. Discovers all videos, lets the use
 
 The user provides a YouTube channel URL, name, or handle (e.g. `@3blue1brown`, `https://www.youtube.com/@3blue1brown`).
 
+## File I/O
+
+All markdown reads and writes inside `gurukul/` go through the `obsidian` CLI against the `the_new_order` vault (see `/ingest`'s "File I/O" section for command shapes). JSON manifests, VTT subtitles, and `/tmp/` scratch files use normal tools (`Write`, `Edit`, `Bash`). If `obsidian` is unreachable, silently fall back to `Write`/`Edit`.
+
 ## Phase 1: Discovery
 
 ### 1a. Normalize URL
@@ -142,7 +146,14 @@ Download captions for all `pending` videos, one at a time with sleep intervals:
 For each video:
 1. Download VTT captions to `/tmp/channel-ingest/`
 2. Parse VTT → clean text (strip headers, timestamps, duplicate lines, `[Music]` tags)
-3. Save to `gurukul/raw/<kebab-case-title>.md` with frontmatter:
+3. Save to `gurukul/raw/<kebab-case-title>.md` via obsidian-cli:
+   ```bash
+   obsidian vault=the_new_order create \
+     path="gurukul/raw/<kebab-case-title>.md" \
+     content="---\ntitle: \"<Video Title>\"\nsource_url: \"<video_url>\"\nspeaker: \"<channel_name>\"\ndate: YYYY-MM-DD\ntype: transcript\n---\n\n<cleaned transcript>" \
+     silent
+   ```
+   Frontmatter shape:
    ```yaml
    ---
    title: "<Video Title>"
@@ -174,13 +185,15 @@ Raw transcript: raw/<raw_file> (already downloaded)
 Invoke the /ingest skill for this video. Modifications for batch mode:
 - Step 1 (Acquire): SKIP — transcript is already saved in gurukul/raw/
 - Step 4 (Discuss with User): SKIP — use this emphasis instead: "<batch_emphasis>"
+- File I/O: all markdown writes to gurukul/ go through `obsidian vault=the_new_order ...`
+  (see the File I/O section in /ingest). Fall back to Write silently if obsidian is unreachable.
 - IGNORE all promotional content: sponsor segments, product plugs, affiliate pitches,
   merch pushes, course/membership upsells, Patreon/newsletter CTAs, discount codes,
   "check out my..." sections. Do NOT create wiki pages for the creator's own products
   or services. Do NOT include promotional claims in any wiki page. Extract only the
   substantive educational/informational content.
 
-Execute Steps 2 (if frontmatter needs fixing), 3, 5, 6, 7, 8 normally.
+Execute Steps 2 (if frontmatter needs fixing), 3, 5, 5b (backlink to raw), 6, 7, 8 normally.
 
 Report back: list of wiki page paths created/updated.
 ```
@@ -213,8 +226,10 @@ Agent tool: subagent_type="general-purpose", mode="bypassPermissions"
 After all videos are processed:
 
 1. Append a summary entry to `gurukul/wiki/log.md`:
-   ```
-   - **ingest-channel**: Completed @<channel> — X/Y videos ingested, Z skipped, W failed
+   ```bash
+   obsidian vault=the_new_order append \
+     path="gurukul/wiki/log.md" \
+     content="- **ingest-channel**: Completed @<channel> — X/Y videos ingested, Z skipped, W failed"
    ```
 2. Clean up temp files:
    ```bash
