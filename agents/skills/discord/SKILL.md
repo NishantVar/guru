@@ -32,6 +32,12 @@ Under the **Learning** category:
 | `briefings` | forum | Orientation, curriculum structure, announcements (maps to `gurukul/lessons/briefings/`) |
 | One forum per ladder track | forum | `vibing`, `operating`, `directing`, `delegating`, `orchestrating`, `systemizing`, `compounding`, `evolving` — lessons for that level |
 
+Outside the Learning category, under **Text Channels**:
+
+| Channel | Type | Purpose |
+|---------|------|---------|
+| `updates` | text | Announcements when lessons are added or updated. Sits outside Learning intentionally so the announcement stream is visible without entering the curriculum. |
+
 Discover the current list of tracks dynamically. Only create forums for tracks that have (or will have) content — it's fine to grow the server as the curriculum grows.
 
 ### Forum Tags
@@ -48,6 +54,7 @@ Apply the tag matching the lesson's `lesson_format` when posting. Briefings use 
 - `index`: "Start here — your learning roadmap"
 - `briefings`: "Curriculum orientation and announcements"
 - Track forums: use the track's one-line description from `gurukul/docs/agentic-engineering-ladder.md`
+- `updates`: "New and updated lessons. Each post links to the lesson in #Learning."
 
 ## Index Channel
 
@@ -82,6 +89,38 @@ Start with Briefings, then pick a track and follow it in order.
 ```
 
 Link each lesson title to its forum post URL when the post exists.
+
+## Updates Channel
+
+The `#updates` channel is the announcement stream for lesson activity. **Post to it whenever a lesson is created or meaningfully updated.** Skip trivial edits (typo fixes, link rewrites, formatting passes).
+
+### Format
+
+One short message per event. Bold prefix + linked title + one-line description. Period at the end.
+
+```
+**New briefing:** [Title](forum-post-url) — one-line description.
+**New lesson:** [Title](forum-post-url) — one-line description.
+**Updated:** [Title](forum-post-url) — one-line summary of what changed.
+```
+
+Pick the prefix by event type:
+
+| Prefix | When |
+|--------|------|
+| `**New briefing:**` | First publish of a briefing |
+| `**New lesson:**` | First publish of a track lesson |
+| `**Updated:**` | Meaningful edit to an existing lesson or briefing |
+
+The description is one short clause — what the lesson covers (for new) or what changed (for updates). No emojis, no role mentions, no timestamps. The channel itself carries the timestamp.
+
+### When to post
+
+- **New lesson published** → one post per lesson, after the forum post and index pin are both updated
+- **Meaningful update** → after the forum post body is edited and the index is in sync
+- **Batch publishes** → one post per lesson, in the order they appear in the index. Don't combine multiple lessons into one announcement; each gets its own line so people can react/jump per lesson.
+
+Don't announce: index-only edits with no lesson change, fixing a stale next-link, retitling without content change.
 
 ## Lesson Posts
 
@@ -148,6 +187,7 @@ Precondition: the lesson file already exists at `gurukul/lessons/<track>/<slug>.
 5. Append the next-lesson link (see "Next-lesson link" above)
 6. Update the index channel's pinned message to include the new lesson (read `gurukul/lessons/index.md` as source of truth, re-render for Discord, edit the pinned message)
 7. If the previous lesson in the track exists as a forum post, edit it to add/update its next-lesson link pointing to this new post
+8. Post an announcement in `#updates` (see "Updates Channel" above)
 
 ### Updating an Existing Lesson
 
@@ -156,6 +196,7 @@ Precondition: the lesson file already exists at `gurukul/lessons/<track>/<slug>.
 3. Edit the post body to match — strip frontmatter, resolve wikilinks
 4. If the lesson's `updated:` date reflects a meaningful change, add a brief note at the top of the post body (e.g., "*Updated YYYY-MM-DD — expanded examples.*")
 5. Re-sync the pinned index if the title or order changed
+6. If the change is meaningful (not a typo / formatting fix), post an `**Updated:**` announcement in `#updates`
 
 ### Updating the Index
 
@@ -186,11 +227,14 @@ Grow the server incrementally — don't pre-create empty forums for tracks that 
 
 ## Handling Current Server State
 
-As of the last recorded state, the server has **no track forums** — only the `index` channel in the Learning category holds a placeholder pinned message. When the user wants to publish a lesson:
+The server is partially built out. Always re-confirm via `list_channels` before assuming structure exists, since this skill file may lag the live server.
 
-1. Create the needed forum(s) for the lesson's track (and `briefings` if publishing a briefing)
-2. Replace the placeholder pinned index with the rendered `gurukul/lessons/index.md`
-3. Proceed with the publish workflow
+Last known structure:
+- **Learning** category: `index` (text), `briefings` (forum), `vibing` (forum), `operating` (forum)
+- **Text Channels** category: `general`, `bots`, `updates`
+- The pinned index message exists in `#index` and is being kept in sync with `gurukul/lessons/index.md`
+
+When something is missing, create it lazily as part of the publish workflow rather than pre-building empty channels.
 
 ## References
 
